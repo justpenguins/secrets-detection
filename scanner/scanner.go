@@ -8,10 +8,11 @@ import (
 )
 
 type Finding struct {
-	File    string
-	LineNum int
-	Match   string
-	Type    string
+	File       string
+	LineNum    int
+	Match      string
+	Type       string
+	Remediated bool
 }
 
 func ScanDirectory(path string) ([]Finding, error) {
@@ -54,14 +55,39 @@ func scanFile(path string) ([]Finding, error) {
 		for name, pattern := range SecretPatterns {
 			if pattern.MatchString(line) {
 				findings = append(findings, Finding{
-					File:    path,
-					LineNum: lineNum,
-					Match:   pattern.FindString(line),
-					Type:    name,
+					File:       path,
+					LineNum:    lineNum,
+					Match:      pattern.FindString(line),
+					Type:       name,
+					Remediated: false,
 				})
 			}
 		}
 		lineNum++
 	}
+	for _, finding := range findings {
+		fmt.Printf("Found secret in file: %s at line %d: %s\n", finding.File, finding.LineNum, finding.Match)
+	}
 	return findings, scanner.Err()
+}
+
+func GenerateReport(findings []Finding) string {
+	var totalSecrets, remediatedSecrets int
+
+	for _, finding := range findings {
+		totalSecrets++
+		if finding.Remediated {
+			remediatedSecrets++
+		}
+	}
+
+	report := fmt.Sprintf(
+		"\n------ Secrets Report -----\n"+
+			"Total Secrets Detected: %d\n"+
+			"Secrets Remediated: %d\n"+
+			"Possible Secrets: %d\n",
+		totalSecrets, remediatedSecrets, totalSecrets-remediatedSecrets,
+	)
+
+	return report
 }

@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
